@@ -1,0 +1,36 @@
+{
+	"appId": "com.powerhouse.mk",
+	"appName": "MK",
+	"webDir": "dist",
+	"server": {
+		"androidScheme": "https",
+		"iosScheme": "https"
+	},
+	"plugins": {
+		"SplashScreen": {
+			"launchShowDuration": 3000,
+			"launchAutoHide": true,
+			"backgroundColor": "#0A0F1C",
+			"androidSplashResourceName": "splash",
+			"androidScaleType": "CENTER_CROP",
+			"showSpinner": true,
+			"androidSpinnerStyle": "large",
+			"iosSpinnerStyle": "small",
+			"spinnerColor": "#0AE7F2",
+			"splashFullScreen": true,
+			"splashImmersive": true
+		}
+	},
+	"ios": {
+		"contentInset": "never",
+		"preferredStatusBarStyle": "lightContent",
+		"statusBarOverlaysWebView": false,
+		"hideStatusBar": false
+	},
+	"android": {
+		"backgroundColor": "#0A0F1C",
+		"statusBarStyle": "dark",
+		"statusBarOverlaysWebView": false,
+		"hideStatusBar": false
+	}
+}

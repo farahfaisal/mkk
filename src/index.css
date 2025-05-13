@@ -1,0 +1,231 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Root container */
+#root {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0 auto;
+  position: relative;
+  background: #0A0F1C;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Body styles */
+body {
+  background: #000;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overscroll-behavior: none;
+  position: fixed;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* Screen Transitions */
+.screen-enter {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.screen-enter-active {
+  transform: translateX(0);
+  opacity: 1;
+  transition: all 300ms ease-out;
+}
+
+.screen-exit {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.screen-exit-active {
+  transform: translateX(100%);
+  opacity: 0;
+  transition: all 300ms ease-in;
+}
+
+/* Modal Transitions */
+.modal-enter {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.modal-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: all 200ms ease-out;
+}
+
+.modal-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.modal-exit-active {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: all 200ms ease-in;
+}
+
+/* Main Content Area */
+.main-content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: calc(85px + env(safe-area-inset-bottom));
+  position: relative;
+  height: 100%;
+  overscroll-behavior: contain;
+}
+
+/* Bottom Navigation */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 2px solid rgba(10, 231, 242, 0.3);
+  padding: 16px 20px;
+  width: 100%;
+  height: calc(85px + env(safe-area-inset-bottom));
+  padding-bottom: max(16px, calc(16px + env(safe-area-inset-bottom)));
+}
+
+/* Navigation Icon Glow Effect */
+.nav-icon {
+  @apply text-[#0AE7F2];
+  filter: drop-shadow(0 0 10px rgba(10, 231, 242, 0.7))
+         drop-shadow(0 0 20px rgba(10, 231, 242, 0.5))
+         drop-shadow(0 0 30px rgba(10, 231, 242, 0.3));
+}
+
+/* Header Base Style */
+.header-base {
+  @apply sticky top-0 z-50 border-b border-[#0AE7F2]/20;
+  background-color: rgba(26, 31, 46, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: 16px 24px;
+  margin-bottom: 16px;
+  padding-top: max(16px, calc(16px + env(safe-area-inset-top)));
+}
+
+/* Content Container Base Style */
+.content-container {
+  @apply px-6 py-4;
+  padding-bottom: max(24px, calc(24px + env(safe-area-inset-bottom)));
+}
+
+/* Card Base Style */
+.card-base {
+  @apply bg-[#1A1F2E]/60 backdrop-blur-sm rounded-2xl border border-[#0AE7F2]/20 p-6;
+  margin-bottom: 24px;
+}
+
+/* Button Base Style */
+.button-base {
+  @apply transition-all duration-300 ease-in-out;
+  transform-origin: center;
+}
+
+.button-base:active {
+  transform: scale(0.95);
+}
+
+/* Input Base Style */
+.input-base {
+  @apply bg-[#1A1F2E]/60 border border-[#0AE7F2]/20 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:border-[#0AE7F2] transition-all duration-300;
+  font-size: 16px;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.input-base:focus {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(10, 231, 242, 0.1);
+}
+
+/* Background Base Style */
+.bg-base {
+  @apply fixed inset-0 z-0;
+  background-image: url('https://souqpale.com/wp-content/uploads/2025/03/c6a88587-52e0-40e0-bc99-c71f3c739318.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Hide scrollbars while maintaining functionality */
+.main-content::-webkit-scrollbar {
+  display: none;
+}
+
+.main-content {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Admin Dashboard Specific Styles */
+.admin-container {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+
+@media (min-width: 768px) {
+  .admin-container {
+    padding: 0 4rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .admin-container {
+    padding: 0 6rem;
+  }
+}
+
+/* RTL specific styles */
+[dir="rtl"] .screen-enter {
+  transform: translateX(100%);
+}
+
+[dir="rtl"] .screen-enter-active {
+  transform: translateX(0);
+}
+
+[dir="rtl"] .screen-exit-active {
+  transform: translateX(-100%);
+}
+
+/* Dynamic text sizing */
+@media screen and (min-width: 430px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+@media screen and (max-width: 429px) {
+  html {
+    font-size: calc(14px + (16 - 14) * ((100vw - 320px) / (430 - 320)));
+  }
+}html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: #0A0F1C;
+  overscroll-behavior: none;
+  position: fixed;
+  inset: 0;
+}

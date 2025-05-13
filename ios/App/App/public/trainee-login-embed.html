@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>MK - تطبيق اللياقة البدنية</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background-color: #0A0F1C;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+    
+    .app-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    iframe {
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      border: none;
+      overflow: hidden;
+    }
+    
+    .loading {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: #0A0F1C;
+      color: white;
+      z-index: 100;
+      transition: opacity 0.5s ease-in-out;
+    }
+    
+    .loading.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(10, 231, 242, 0.3);
+      border-radius: 50%;
+      border-top-color: #0AE7F2;
+      animation: spin 1s ease-in-out infinite;
+      margin-bottom: 20px;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .logo {
+      width: 120px;
+      height: auto;
+      margin-bottom: 20px;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+    
+    /* Mobile device frame styling */
+    .device-frame {
+      max-width: 375px;
+      margin: 0 auto;
+      height: 100%;
+      background: #111;
+      border-radius: 40px;
+      padding: 10px;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    .device-screen {
+      flex: 1;
+      background: #0A0F1C;
+      border-radius: 30px;
+      overflow: hidden;
+      position: relative;
+    }
+    
+    .device-notch {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 150px;
+      height: 30px;
+      background: #111;
+      border-bottom-left-radius: 15px;
+      border-bottom-right-radius: 15px;
+      z-index: 10;
+    }
+    
+    .device-home {
+      width: 100px;
+      height: 5px;
+      background: #333;
+      border-radius: 3px;
+      margin: 10px auto 0;
+    }
+    
+    /* Responsive container */
+    .responsive-container {
+      position: relative;
+      padding-bottom: 177.78%; /* 16:9 aspect ratio for portrait mobile */
+      height: 0;
+      overflow: hidden;
+      max-width: 100%;
+    }
+    
+    .responsive-container iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    
+    /* Options panel */
+    .options-panel {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: rgba(26, 31, 46, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 10px;
+      padding: 10px;
+      z-index: 1000;
+      border: 1px solid rgba(10, 231, 242, 0.2);
+      color: white;
+      font-size: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      transition: transform 0.3s ease;
+      transform: translateX(-100%);
+    }
+    
+    .options-panel.visible {
+      transform: translateX(0);
+    }
+    
+    .options-toggle {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      background: rgba(10, 231, 242, 0.8);
+      color: #0A0F1C;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 1001;
+      font-weight: bold;
+      font-size: 20px;
+    }
+    
+    .options-panel button {
+      background: rgba(10, 231, 242, 0.2);
+      border: 1px solid rgba(10, 231, 242, 0.5);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    
+    .options-panel button:hover {
+      background: rgba(10, 231, 242, 0.3);
+    }
+    
+    .options-panel button.active {
+      background: rgba(10, 231, 242, 0.8);
+      color: #0A0F1C;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading" class="loading">
+    <img src="https://souqpale.com/wp-content/uploads/2025/03/تصميم-بدون-عنوان-9.png" alt="Logo" class="logo">
+    <div class="spinner"></div>
+    <p>جاري تحميل التطبيق...</p>
+  </div>
+  
+  <button id="options-toggle" class="options-toggle">⚙️</button>
+  
+  <div id="options-panel" class="options-panel">
+    <h3>خيارات العرض</h3>
+    <div>
+      <button id="fullscreen-btn" class="active">شاشة كاملة</button>
+      <button id="mobile-btn">هاتف محمول</button>
+      <button id="responsive-btn">متجاوب</button>
+    </div>
+    <button id="reload-btn">إعادة تحميل</button>
+  </div>
+  
+  <div id="app-container" class="app-container">
+    <!-- Content will be dynamically inserted here -->
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const loading = document.getElementById('loading');
+      const appContainer = document.getElementById('app-container');
+      const optionsToggle = document.getElementById('options-toggle');
+      const optionsPanel = document.getElementById('options-panel');
+      const fullscreenBtn = document.getElementById('fullscreen-btn');
+      const mobileBtn = document.getElementById('mobile-btn');
+      const responsiveBtn = document.getElementById('responsive-btn');
+      const reloadBtn = document.getElementById('reload-btn');
+      
+      const loginUrl = 'https://mk-powerhouse.netlify.app/trainee/login';
+      let currentView = 'fullscreen';
+      
+      // Toggle options panel
+      optionsToggle.addEventListener('click', function() {
+        optionsPanel.classList.toggle('visible');
+      });
+      
+      // Set active button
+      function setActiveButton(activeBtn) {
+        [fullscreenBtn, mobileBtn, responsiveBtn].forEach(btn => {
+          btn.classList.remove('active');
+        });
+        activeBtn.classList.add('active');
+      }
+      
+      // Load iframe content
+      function loadContent() {
+        // Clear previous content
+        appContainer.innerHTML = '';
+        
+        if (currentView === 'fullscreen') {
+          appContainer.innerHTML = `
+            <iframe 
+              id="app-frame" 
+              src="${loginUrl}" 
+              allow="accelerometer; autoplay; camera; encrypted-media; geolocation; gyroscope; microphone; picture-in-picture" 
+              allowfullscreen
+            ></iframe>
+          `;
+        } 
+        else if (currentView === 'mobile') {
+          appContainer.innerHTML = `
+            <div class="device-frame">
+              <div class="device-screen">
+                <div class="device-notch"></div>
+                <iframe 
+                  id="app-frame" 
+                  src="${loginUrl}" 
+                  allow="accelerometer; autoplay; camera; encrypted-media; geolocation; gyroscope; microphone; picture-in-picture" 
+                  allowfullscreen
+                ></iframe>
+              </div>
+              <div class="device-home"></div>
+            </div>
+          `;
+        }
+        else if (currentView === 'responsive') {
+          appContainer.innerHTML = `
+            <div class="responsive-container">
+              <iframe 
+                id="app-frame" 
+                src="${loginUrl}" 
+                allow="accelerometer; autoplay; camera; encrypted-media; geolocation; gyroscope; microphone; picture-in-picture" 
+                allowfullscreen
+              ></iframe>
+            </div>
+          `;
+        }
+        
+        // Get the new iframe
+        const iframe = document.getElementById('app-frame');
+        
+        // Show loading screen
+        loading.classList.remove('hidden');
+        
+        // Hide loading screen when iframe is loaded
+        iframe.onload = function() {
+          setTimeout(() => {
+            loading.classList.add('hidden');
+          }, 1000);
+        };
+      }
+      
+      // Button event listeners
+      fullscreenBtn.addEventListener('click', function() {
+        currentView = 'fullscreen';
+        setActiveButton(fullscreenBtn);
+        loadContent();
+      });
+      
+      mobileBtn.addEventListener('click', function() {
+        currentView = 'mobile';
+        setActiveButton(mobileBtn);
+        loadContent();
+      });
+      
+      responsiveBtn.addEventListener('click', function() {
+        currentView = 'responsive';
+        setActiveButton(responsiveBtn);
+        loadContent();
+      });
+      
+      reloadBtn.addEventListener('click', function() {
+        loadContent();
+      });
+      
+      // Initial load
+      loadContent();
+      
+      // Handle fullscreen mode
+      document.addEventListener('dblclick', function() {
+        if (document.fullscreenElement) return;
+        
+        const docEl = document.documentElement;
+        
+        if (docEl.requestFullscreen) {
+          docEl.requestFullscreen();
+        } else if (docEl.webkitRequestFullscreen) {
+          docEl.webkitRequestFullscreen();
+        } else if (docEl.msRequestFullscreen) {
+          docEl.msRequestFullscreen();
+        }
+      });
+    });
+  </script>
+</body>
+</html>

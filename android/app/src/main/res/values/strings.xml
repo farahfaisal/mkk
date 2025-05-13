@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MK</string>
+    <string name="title_activity_main">MK</string>
+    <string name="package_name">com.powerhouse.mk</string>
+    <string name="custom_url_scheme">com.powerhouse.mk</string>
+</resources>
