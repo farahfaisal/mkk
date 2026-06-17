@@ -5,6 +5,7 @@ import { supabase, isSupabaseConnected } from '../lib/supabase';
 import { v4 as uuidv4 } from 'uuid';
 import { getOrCreateConversation, getMessages, markMessagesAsRead, sendMessage } from '../lib/api/chat';
 import { formatDate } from '../lib/utils/date';
+import { sendNotification } from '../lib/api/notifications';
 
 interface ChatProps {
   onBack: () => void;
@@ -159,39 +160,42 @@ export function Chat({ onBack }: ChatProps) {
       if (isSupabaseConnected()) {
         // Send message to API
         const sentMessage = await sendMessage(conversation.id, message);
-        
+
         // Update message status to delivered
-        setMessages(prev => 
-          prev.map(msg => 
+        setMessages(prev =>
+          prev.map(msg =>
             msg.id === newMessage.id ? { ...msg, id: sentMessage.id, status: 'delivered' as const } : msg
           )
         );
+
+        // Send notification to trainer
+        try {
+          const { data: { user } } = await supabase.auth.getUser();
+          const { data: traineeProfile } = await supabase
+            .from('trainee_profiles')
+            .select('name')
+            .eq('id', user?.id)
+            .single();
+
+          const { data: trainer } = await supabase
+            .from('trainee_profiles')
+            .select('id')
+            .eq('email', 'mk@powerhouse.com')
+            .single();
+
+          if (trainer) {
+            await supabase.from('notifications').insert({
+              title: `رسالة جديدة من ${traineeProfile?.name || 'متدرب'}`,
+              message: message.length > 60 ? message.substring(0, 60) + '...' : message,
+              type: 'info',
+              sender_id: user?.id,
+              recipient_id: trainer.id
+            });
+          }
+        } catch (notifErr) {
+          console.error('Error sending trainer notification:', notifErr);
+        }
       }
-      
-      // Simulate trainer typing and response
-      setIsTyping(true);
-      
-      setTimeout(() => {
-        const trainerResponse: Message = {
-          id: (Date.now() + 1).toString(),
-          text: 'حسناً، سأقوم بمراجعة برنامجك الحالي وأقترح التعديلات المناسبة. هل يمكنك إخباري عن أهدافك الحالية؟',
-          sender: 'trainer',
-          timestamp: new Date(),
-          status: 'sent'
-        };
-        
-        setMessages(prev => [...prev, trainerResponse]);
-        setIsTyping(false);
-        
-        // Mark user message as read
-        setTimeout(() => {
-          setMessages(prev => 
-            prev.map(msg => 
-              msg.id === newMessage.id ? { ...msg, status: 'read' as const } : msg
-            )
-          );
-        }, 500);
-      }, 2500);
     } catch (err) {
       console.error('Error sending message:', err);
       // Keep the message in the UI but mark it as failed
