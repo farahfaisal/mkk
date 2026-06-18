@@ -181,13 +181,7 @@ export const getTraineeMeals = async (traineeId: string): Promise<TraineeMeal[]>
 
   const { data, error } = await supabase
     .from('trainee_meals')
-    .select(`
-      id,
-      meal_id,
-      status,
-      consumed_at,
-      notes
-    `)
+    .select('id, trainee_id, name, calories, protein, carbs, fat, description, category, status, created_at')
     .eq('trainee_id', traineeId)
     .order('created_at', { ascending: false });
 
@@ -195,11 +189,10 @@ export const getTraineeMeals = async (traineeId: string): Promise<TraineeMeal[]>
 
   return data.map(meal => ({
     id: meal.id,
-    traineeId,
-    mealId: meal.meal_id,
-    status: meal.status,
-    consumedAt: meal.consumed_at ? new Date(meal.consumed_at) : undefined,
-    notes: meal.notes
+    traineeId: meal.trainee_id,
+    mealId: meal.id,
+    status: 'consumed' as const,
+    notes: meal.description
   }));
 };
 

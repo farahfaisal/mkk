@@ -87,11 +87,11 @@ export function DietProgram({}: DietProgramProps) {
           // Create new schedule if none exists
           const { data: newSchedule, error: createError } = await supabase
             .from('weekly_schedules')
-            .upsert({
-              trainee_id: user.id,
-              week_start_date: weekStartDate
-            })
-            .select()
+            .upsert(
+              { trainee_id: user.id, week_start_date: weekStartDate },
+              { onConflict: 'trainee_id,week_start_date' }
+            )
+            .select('id')
             .single();
 
           if (createError) throw createError;
