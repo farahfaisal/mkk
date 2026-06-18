@@ -412,38 +412,59 @@ export function DietProgram({}: DietProgramProps) {
   };
 
   const handleSendToTrainer = async () => {
+    if (!notes.trim()) {
+      alert('يرجى كتابة ملاحظة قبل الإرسال');
+      return;
+    }
+
     try {
       if (isSupabaseConnected()) {
         const { data: { user } } = await supabase.auth.getUser();
-        
+
         if (!user) {
           throw new Error('المستخدم غير مسجل الدخول');
         }
-        
+
+        // Get trainee name
+        const { data: traineeProfile } = await supabase
+          .from('trainee_profiles')
+          .select('name')
+          .eq('id', user.id)
+          .single();
+
         // Add note to database
-        const { error } = await supabase
+        const { error: noteError } = await supabase
           .from('trainee_notes')
           .insert({
             trainee_id: user.id,
-            note: notes,
-            date: selectedDate.toISOString().split('T')[0],
-            type: 'diet'
+            note_text: notes,
+            note_type: 'diet',
+            is_from_trainee: true
           });
-          
-        if (error) throw error;
-        
-        // Send notification to trainer
-        await supabase
+
+        if (noteError) throw noteError;
+
+        // Get trainer ID
+        const { data: trainer } = await supabase
+          .from('trainee_profiles')
+          .select('id')
+          .eq('email', 'mk@powerhouse.com')
+          .single();
+
+        // Send notification to trainer only
+        const { error: notifError } = await supabase
           .from('notifications')
           .insert({
-            title: 'ملاحظات غذائية جديدة',
-            message: `أضاف المتدرب ملاحظات جديدة حول النظام الغذائي`,
+            title: `ملاحظة غذائية من ${traineeProfile?.name || 'متدرب'}`,
+            message: notes.length > 80 ? notes.substring(0, 80) + '...' : notes,
             type: 'meal',
             sender_id: user.id,
-            recipient_id: null // Will be sent to all trainers
+            recipient_id: trainer?.id || null
           });
+
+        if (notifError) throw notifError;
       }
-      
+
       alert('تم إرسال الملاحظات للمدرب بنجاح!');
       setNotes('');
     } catch (error) {
