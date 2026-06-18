@@ -12,43 +12,35 @@ export interface WeeklyPerformance {
 // أسماء الأيام بالعربية
 const ARABIC_DAY_NAMES = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
-// بيانات وهمية للتطوير أو عندما يكون المستخدم غير مسجل
-const getMockWeeklyData = (): WeeklyPerformance[] => {
-  return [
-    { day: 'الجمعة', date: '2024-04-19', completedExercises: 3, completedMeals: 3, value: 60 },
-    { day: 'الخميس', date: '2024-04-18', completedExercises: 4, completedMeals: 2, value: 60 },
-    { day: 'الأربعاء', date: '2024-04-17', completedExercises: 3, completedMeals: 3, value: 60 },
-    { day: 'الثلاثاء', date: '2024-04-16', completedExercises: 3, completedMeals: 3, value: 60 },
-    { day: 'الإثنين', date: '2024-04-15', completedExercises: 2, completedMeals: 2, value: 40 },
-    { day: 'الأحد', date: '2024-04-14', completedExercises: 5, completedMeals: 4, value: 90 },
-    { day: 'السبت', date: '2024-04-13', completedExercises: 3, completedMeals: 2, value: 50 }
-  ];
-};
-
 // دالة لجلب بيانات الأداء الأسبوعي
 export const getWeeklyPerformance = async (): Promise<WeeklyPerformance[]> => {
-  // إذا لم يكن هناك اتصال بـ Supabase، نرجع البيانات الوهمية
+  // الحصول على تواريخ الأسبوع الحالي (7 أيام للخلف)
+  const dates = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (6 - i));
+    return date.toISOString().split('T')[0];
+  });
+
+  const emptyWeek = (): WeeklyPerformance[] =>
+    dates.map(date => ({
+      day: ARABIC_DAY_NAMES[new Date(date).getDay()],
+      date,
+      completedExercises: 0,
+      completedMeals: 0,
+      value: 0
+    }));
+
   if (!isSupabaseConnected()) {
-    return getMockWeeklyData();
+    return emptyWeek();
   }
 
   try {
-    // الحصول على المستخدم الحالي
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    // إذا كان هناك خطأ في المصادقة أو المستخدم غير مسجل، نرجع البيانات الوهمية
+
     if (authError || !user) {
-      return getMockWeeklyData();
+      return emptyWeek();
     }
 
-    // الحصول على تواريخ الأسبوع الماضي
-    const dates = Array.from({ length: 7 }, (_, i) => {
-      const date = new Date();
-      date.setDate(date.getDate() - i);
-      return date.toISOString().split('T')[0];
-    });
-
-    // جلب بيانات الأداء من جدول trainee_performance
     const { data, error } = await supabase
       .from('trainee_performance')
       .select('date, completed_exercises, completed_meals, progress_value')
@@ -57,19 +49,15 @@ export const getWeeklyPerformance = async (): Promise<WeeklyPerformance[]> => {
 
     if (error) {
       console.error('Error fetching performance data:', error);
-      return getMockWeeklyData();
+      return emptyWeek();
     }
 
-    // تحويل البيانات إلى التنسيق المطلوب
     const performanceMap = new Map<string, WeeklyPerformance>();
-    
-    // إنشاء خريطة من البيانات المسترجعة
+
     data?.forEach(item => {
       const date = new Date(item.date);
-      const dayName = ARABIC_DAY_NAMES[date.getDay()];
-      
       performanceMap.set(item.date, {
-        day: dayName,
+        day: ARABIC_DAY_NAMES[date.getDay()],
         date: item.date,
         completedExercises: item.completed_exercises,
         completedMeals: item.completed_meals,
@@ -77,30 +65,21 @@ export const getWeeklyPerformance = async (): Promise<WeeklyPerformance[]> => {
       });
     });
 
-    // ملء البيانات المفقودة للأيام التي لا تحتوي على سجلات
-    const result = dates.map(date => {
-      const dayIndex = new Date(date).getDay();
-      const dayName = ARABIC_DAY_NAMES[dayIndex];
-      
+    return dates.map(date => {
       if (performanceMap.has(date)) {
         return performanceMap.get(date)!;
       }
-      
-      // إنشاء سجل فارغ لليوم الذي لا يحتوي على بيانات
       return {
-        day: dayName,
+        day: ARABIC_DAY_NAMES[new Date(date).getDay()],
         date,
         completedExercises: 0,
         completedMeals: 0,
         value: 0
       };
     });
-
-    return result;
   } catch (error) {
     console.error('Error fetching weekly performance:', error);
-    // إرجاع بيانات وهمية في حالة حدوث خطأ
-    return getMockWeeklyData();
+    return emptyWeek();
   }
 };
 
